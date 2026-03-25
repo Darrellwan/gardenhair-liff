@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>GardenHair 會員綁定</title>
+
+  <!-- LIFF SDK -->
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+  <!-- Fonts — Zen Kaku Gothic New: clean Japanese/CJK sans-serif with personality -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&family=Noto+Sans+TC:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    /* ━━━ HAIR STYLING Design System ━━━
+       Unified with Flex Message color tokens */
+    :root {
+      --primary: #1F2937;
+      --secondary: #9CA3AF;
+      --label: #aaaaaa;
+      --value: #666666;
+      --bg-block: #F9FAFB;
+      --separator: #F0F0F0;
+      --border: #E5E7EB;
+      --white: #FFFFFF;
+      --status-ok: #10B981;
+      --status-warn: #F59E0B;
+      --status-danger: #EF4444;
+
+      --text-dark: #111827;
+      --text-gray-600: #4B5563;
+      --bg-page: #F3F4F6;
+
+      --radius-card: 20px;
+      --radius-input: 10px;
+      --font-display: 'DM Sans', sans-serif;
+      --font-body: 'Noto Sans TC', 'DM Sans', sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--font-body);
+      font-weight: 400;
+      background: var(--bg-page);
+      color: var(--primary);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 16px;
+      position: relative;
+    }
+
+    /* ━━━ Background texture ━━━ */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 0%, rgba(31,41,55,0.03) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 100%, rgba(156,163,175,0.04) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ━━━ Card ━━━ */
+    .card {
+      background: var(--white);
+      border-radius: var(--radius-card);
+      box-shadow:
+        0 1px 2px rgba(0,0,0,0.04),
+        0 4px 12px rgba(0,0,0,0.06),
+        0 16px 40px rgba(0,0,0,0.04);
+      width: 100%;
+      max-width: 400px;
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+      animation: cardIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      opacity: 0;
+      transform: translateY(16px);
+    }
+
+    @keyframes cardIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ━━━ Header ━━━ */
+    .card-header {
+      padding: 28px 28px 24px;
+      text-align: center;
+      position: relative;
+    }
+
+    .card-header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 28px;
+      right: 28px;
+      height: 1px;
+      background: var(--separator);
+    }
+
+    .logo-text {
+      font-family: var(--font-display);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 4px;
+      color: var(--secondary);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .brand-name {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 600;
+      color: var(--primary);
+      letter-spacing: 1px;
+    }
+
+    .brand-bar {
+      display: block;
+      width: 32px;
+      height: 2px;
+      background: var(--primary);
+      margin: 14px auto 0;
+      border-radius: 1px;
+    }
+
+    /* ━━━ Content area ━━━ */
+    .card-content {
+      padding: 24px 28px 28px;
+    }
+
+    .welcome {
+      text-align: center;
+      margin-bottom: 24px;
+      animation: fadeUp 0.5s ease 0.2s both;
+    }
+
+    .welcome h2 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 6px;
+    }
+
+    .welcome p {
+      font-size: 13px;
+      color: var(--value);
+      line-height: 1.7;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ━━━ Form ━━━ */
+    .form-group {
+      margin-bottom: 16px;
+      animation: fadeUp 0.4s ease both;
+    }
+    .form-group:nth-child(1) { animation-delay: 0.25s; }
+    .form-group:nth-child(2) { animation-delay: 0.3s; }
+    .form-group:nth-child(3) { animation-delay: 0.35s; }
+    .form-group:nth-child(4) { animation-delay: 0.4s; }
+
+    .form-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-gray-600);
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .form-label .required {
+      font-size: 10px;
+      color: var(--status-danger);
+      font-weight: 600;
+    }
+
+    .form-label .optional {
+      font-size: 10px;
+      color: var(--secondary);
+      font-weight: 400;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px 14px;
+      font-family: var(--font-body);
+      font-size: 15px;
+      font-weight: 400;
+      color: var(--primary);
+      background: var(--bg-block);
+      border: 1.5px solid var(--separator);
+      border-radius: var(--radius-input);
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .form-input::placeholder {
+      color: var(--label);
+      font-weight: 300;
+    }
+
+    .form-input:focus {
+      background: var(--white);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(31, 41, 55, 0.06);
+    }
+
+    .form-input.error {
+      border-color: var(--status-danger);
+      background: #FEF2F2;
+    }
+
+    .form-input.valid {
+      border-color: var(--status-ok);
+    }
+
+    .error-msg {
+      font-size: 11px;
+      color: var(--status-danger);
+      margin-top: 4px;
+      display: none;
+      animation: shake 0.35s ease;
+    }
+
+    .error-msg.show { display: block; }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-3px); }
+      75% { transform: translateX(3px); }
+    }
+
+    .form-hint {
+      font-size: 11px;
+      color: var(--label);
+      margin-top: 4px;
+    }
+
+    /* ━━━ Submit button ━━━ */
+    .submit-btn {
+      width: 100%;
+      padding: 14px 20px;
+      font-family: var(--font-body);
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--white);
+      background: var(--primary);
+      border: none;
+      border-radius: var(--radius-input);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-top: 6px;
+      animation: fadeUp 0.4s ease 0.45s both;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .submit-btn:hover {
+      background: var(--text-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(31, 41, 55, 0.25);
+    }
+
+    .submit-btn:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+
+    .submit-btn:disabled {
+      background: var(--border);
+      color: var(--secondary);
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .submit-btn .spinner {
+      display: none;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: var(--white);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    .submit-btn.loading .spinner { display: inline-block; }
+    .submit-btn.loading .btn-text { opacity: 0.8; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ━━━ Footer ━━━ */
+    .card-footer {
+      text-align: center;
+      padding: 16px 28px 20px;
+      border-top: 1px solid var(--separator);
+      animation: fadeUp 0.4s ease 0.5s both;
+    }
+
+    .card-footer p {
+      font-size: 11px;
+      color: var(--label);
+      line-height: 1.7;
+    }
+
+    .card-footer strong {
+      color: var(--text-gray-600);
+      font-weight: 500;
+    }
+
+    /* ━━━ Success state ━━━ */
+    .state-success {
+      display: none;
+      text-align: center;
+      padding: 36px 28px;
+      animation: popIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.9); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .success-circle {
+      width: 64px;
+      height: 64px;
+      background: var(--status-ok);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 18px;
+    }
+
+    .success-circle svg {
+      width: 30px;
+      height: 30px;
+      stroke: var(--white);
+      stroke-width: 2.5;
+      fill: none;
+      stroke-dasharray: 50;
+      stroke-dashoffset: 50;
+      animation: draw 0.45s ease 0.2s forwards;
+    }
+
+    @keyframes draw { to { stroke-dashoffset: 0; } }
+
+    .state-success h3 {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 6px;
+    }
+
+    .state-success > p {
+      font-size: 13px;
+      color: var(--value);
+      line-height: 1.7;
+    }
+
+    .info-card {
+      background: var(--bg-block);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin: 18px 0;
+      text-align: left;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 0;
+    }
+
+    .info-row + .info-row {
+      border-top: 1px solid var(--separator);
+    }
+
+    .info-row .lbl {
+      font-size: 12px;
+      color: var(--label);
+    }
+
+    .info-row .val {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--primary);
+    }
+
+    /* ━━━ Error state ━━━ */
+    .state-error {
+      display: none;
+      text-align: center;
+      padding: 36px 28px;
+    }
+
+    .error-circle {
+      width: 64px;
+      height: 64px;
+      background: var(--status-danger);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 18px;
+    }
+
+    .state-error h3 {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--status-danger);
+      margin-bottom: 6px;
+    }
+
+    .state-error p {
+      font-size: 13px;
+      color: var(--value);
+      margin-bottom: 18px;
+    }
+
+    .retry-btn {
+      padding: 10px 24px;
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--primary);
+      background: transparent;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-input);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .retry-btn:hover {
+      border-color: var(--primary);
+      background: var(--bg-block);
+    }
+
+    /* ━━━ Loading overlay ━━━ */
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+
+    .loading-overlay.show { display: flex; }
+
+    .loading-ring {
+      width: 40px;
+      height: 40px;
+      border: 2.5px solid var(--separator);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .loading-label {
+      margin-top: 14px;
+      font-size: 13px;
+      color: var(--value);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Loading -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-ring"></div>
+    <div class="loading-label">正在載入...</div>
+  </div>
+
+  <!-- Card -->
+  <div class="card">
+    <div class="card-header">
+      <div class="logo-text">Hair Styling</div>
+      <div class="brand-name">GardenHair</div>
+      <span class="brand-bar"></span>
+    </div>
+
+    <!-- ── Form ── -->
+    <div id="formState">
+      <div class="card-content">
+        <div class="welcome">
+          <h2>會員綁定</h2>
+          <p>請填寫以下資訊完成綁定<br>即可使用 LINE 預約服務</p>
+        </div>
+
+        <form id="bindingForm" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="name">
+              姓名 <span class="required">必填</span>
+            </label>
+            <input type="text" class="form-input" id="name" name="name"
+              placeholder="請輸入姓名" autocomplete="name" required>
+            <div class="error-msg" id="nameError">請輸入 2–20 字的姓名</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="phone">
+              手機號碼 <span class="required">必填</span>
+            </label>
+            <input type="tel" class="form-input" id="phone" name="phone"
+              placeholder="09xxxxxxxx" autocomplete="tel" inputmode="numeric" required>
+            <div class="error-msg" id="phoneError">請輸入 09 開頭的 10 碼手機號碼</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="birthday">
+              生日 <span class="required">必填</span>
+            </label>
+            <input type="date" class="form-input" id="birthday" name="birthday" required>
+            <div class="error-msg" id="birthdayError">請選擇您的生日</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="email">
+              Email <span class="optional">選填</span>
+            </label>
+            <input type="email" class="form-input" id="email" name="email"
+              placeholder="example@email.com" autocomplete="email">
+            <div class="error-msg" id="emailError">請輸入有效的 Email</div>
+          </div>
+
+          <button type="submit" class="submit-btn" id="submitBtn">
+            <span class="spinner"></span>
+            <span class="btn-text">確認綁定</span>
+          </button>
+        </form>
+      </div>
+
+      <div class="card-footer">
+        <p>綁定後即可使用 <strong>LINE 預約</strong> 服務<br>如有問題請聯繫店家</p>
+      </div>
+    </div>
+
+    <!-- ── Success ── -->
+    <div class="state-success" id="successState">
+      <div class="success-circle">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      </div>
+      <h3>綁定成功</h3>
+      <p>感謝您完成會員綁定！</p>
+
+      <div class="info-card">
+        <div class="info-row">
+          <span class="lbl">姓名</span>
+          <span class="val" id="successName">-</span>
+        </div>
+        <div class="info-row">
+          <span class="lbl">手機</span>
+          <span class="val" id="successPhone">-</span>
+        </div>
+        <div class="info-row">
+          <span class="lbl">生日</span>
+          <span class="val" id="successBirthday">-</span>
+        </div>
+      </div>
+
+      <p>此視窗將自動關閉<br>返回 LINE 後輸入「預約」即可開始</p>
+    </div>
+
+    <!-- ── Error ── -->
+    <div class="state-error" id="errorState">
+      <div class="error-circle">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="15" y1="9" x2="9" y2="15"/>
+          <line x1="9" y1="9" x2="15" y2="15"/>
+        </svg>
+      </div>
+      <h3>綁定失敗</h3>
+      <p id="errorMessage">發生錯誤，請稍後再試</p>
+      <button class="retry-btn" id="retryBtn">重新嘗試</button>
+    </div>
+  </div>
+
+  <script>
+    // ========== Config ==========
+    const CONFIG = {
+      // TODO: 替換為你的 LIFF ID
+      LIFF_ID: 'YOUR_LIFF_ID',
+      // TODO: 替換為你的 n8n Webhook URL
+      WEBHOOK_URL: 'YOUR_N8N_WEBHOOK_URL',
+      AUTO_CLOSE_DELAY: 3000
+    };
+
+    // ========== DOM ==========
+    const $ = id => document.getElementById(id);
+    const loadingOverlay = $('loadingOverlay');
+    const formState      = $('formState');
+    const successState   = $('successState');
+    const errorState     = $('errorState');
+    const form           = $('bindingForm');
+    const nameInput      = $('name');
+    const phoneInput     = $('phone');
+    const birthdayInput  = $('birthday');
+    const emailInput     = $('email');
+    const submitBtn      = $('submitBtn');
+    const retryBtn       = $('retryBtn');
+
+    let userId = null;
+    let isSubmitting = false;
+
+    // ========== LIFF Init ==========
+    async function initLiff() {
+      showLoading(true);
+      try {
+        await liff.init({ liffId: CONFIG.LIFF_ID });
+        if (!liff.isInClient()) {
+          console.warn('Not in LINE client — test mode');
+          userId = 'TEST_USER_' + Date.now();
+        } else {
+          if (!liff.isLoggedIn()) { liff.login(); return; }
+          const profile = await liff.getProfile();
+          userId = profile.userId;
+        }
+        showLoading(false);
+      } catch (e) {
+        console.error('LIFF init error:', e);
+        showError('無法初始化 LINE 連線，請重新開啟');
+      }
+    }
+
+    // ========== Validation ==========
+    const validators = {
+      name:     v => v.trim().length >= 2 && v.trim().length <= 20,
+      phone:    v => /^09\d{8}$/.test(v.replace(/\D/g, '')),
+      birthday: v => !!v && !isNaN(new Date(v).getTime()),
+      email:    v => !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)  // optional
+    };
+
+    function formatBirthday(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}/${m}/${day}`;
+    }
+
+    // ========== UI Helpers ==========
+    function showLoading(on) { loadingOverlay.classList.toggle('show', on); }
+
+    function showView(view) {
+      formState.style.display    = view === 'form'    ? '' : 'none';
+      successState.style.display = view === 'success' ? 'block' : 'none';
+      errorState.style.display   = view === 'error'   ? 'block' : 'none';
+    }
+
+    function showError(msg) {
+      showLoading(false);
+      $('errorMessage').textContent = msg;
+      showView('error');
+    }
+
+    function setField(input, errorId, isValid) {
+      input.classList.toggle('error', !isValid);
+      input.classList.toggle('valid', isValid && !!input.value);
+      const errEl = $(errorId);
+      errEl.classList.toggle('show', !isValid);
+    }
+
+    function setSubmitting(on) {
+      isSubmitting = on;
+      submitBtn.disabled = on;
+      submitBtn.classList.toggle('loading', on);
+    }
+
+    // ========== Submit ==========
+    async function handleSubmit(e) {
+      e.preventDefault();
+      if (isSubmitting) return;
+
+      const name     = nameInput.value.trim();
+      const phone    = phoneInput.value.replace(/\D/g, '');
+      const birthday = birthdayInput.value;
+      const email    = emailInput.value.trim();
+
+      let ok = true;
+
+      if (!validators.name(name))       { setField(nameInput, 'nameError', false); ok = false; }
+      else                               { setField(nameInput, 'nameError', true); }
+
+      if (!validators.phone(phone))     { setField(phoneInput, 'phoneError', false); ok = false; }
+      else                               { setField(phoneInput, 'phoneError', true); }
+
+      if (!validators.birthday(birthday)){ setField(birthdayInput, 'birthdayError', false); ok = false; }
+      else                               { setField(birthdayInput, 'birthdayError', true); }
+
+      if (!validators.email(email))     { setField(emailInput, 'emailError', false); ok = false; }
+      else                               { setField(emailInput, 'emailError', true); }
+
+      if (!ok) return;
+
+      setSubmitting(true);
+
+      try {
+        const payload = {
+          userId,
+          name,
+          phone,
+          birthday: formatBirthday(birthday),
+          ...(email && { email })
+        };
+
+        const res = await fetch(CONFIG.WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) throw new Error('Server error');
+
+        // Success
+        $('successName').textContent     = name;
+        $('successPhone').textContent    = phone;
+        $('successBirthday').textContent = formatBirthday(birthday);
+        showView('success');
+
+        setTimeout(() => {
+          if (liff.isInClient()) liff.closeWindow();
+        }, CONFIG.AUTO_CLOSE_DELAY);
+
+      } catch (err) {
+        console.error('Submit error:', err);
+        showError('綁定失敗，請稍後再試');
+      } finally {
+        setSubmitting(false);
+      }
+    }
+
+    // ========== Events ==========
+    // Live validation on blur
+    nameInput.addEventListener('blur', () => {
+      if (nameInput.value) setField(nameInput, 'nameError', validators.name(nameInput.value));
+    });
+    phoneInput.addEventListener('blur', () => {
+      if (phoneInput.value) setField(phoneInput, 'phoneError', validators.phone(phoneInput.value));
+    });
+    birthdayInput.addEventListener('blur', () => {
+      if (birthdayInput.value) setField(birthdayInput, 'birthdayError', validators.birthday(birthdayInput.value));
+    });
+    emailInput.addEventListener('blur', () => {
+      if (emailInput.value) setField(emailInput, 'emailError', validators.email(emailInput.value));
+    });
+
+    // Phone: digits only
+    phoneInput.addEventListener('input', e => {
+      e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
+    });
+
+    form.addEventListener('submit', handleSubmit);
+    retryBtn.addEventListener('click', () => { showView('form'); form.reset(); });
+
+    // ========== Start ==========
+    document.addEventListener('DOMContentLoaded', initLiff);
+  </script>
+</body>
+</html>
